@@ -1,0 +1,7 @@
+flask
+gunicorn
+google-auth
+requests
+firebase-admin
+python-dotenv
+beautifulsoup4

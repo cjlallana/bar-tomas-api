@@ -1,0 +1,32 @@
+version: '3.4'
+
+services:
+  # Use for production
+  gunicorn:
+    image: flask-py3/gae:latest
+    build: .
+    command: ["sh", "-c", "while true; do gunicorn -b 0.0.0.0:5000 --reload main:app; sleep 15; done"]
+    ports:
+      - 8080:5000
+    # Mount this volume so Flask can detect code changes
+    volumes:
+      - .:/app
+    environment:
+      PYTHONPATH: "src"
+
+  # Use for development only
+  flaskserver:
+    image: flask-py3:latest
+    build: .
+    #container_name: app-name
+    command: ["sh", "-c", "cd src; flask run --no-debugger"]
+    ports:
+      - 8080:5000
+    # Mount this volume so Flask can detect code changes
+    volumes:
+      - .:/app
+    environment:
+      FLASK_APP: ${FLASK_APP}
+      FLASK_RUN_HOST: "0.0.0.0"
+      #FLASK_RUN_PORT: "8080"
+      FLASK_ENV: "development"

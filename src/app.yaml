@@ -1,0 +1,13 @@
+runtime: python39
+
+handlers:
+- url: /
+  secure: always
+  script: auto
+  
+- url: /statics
+  static_dir: statics
+  
+- url: /favicon\.ico
+  static_files: statics/img/favicon.ico
+  upload: statics/img/favicon\.ico

@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+	<!-- The core Firebase JS SDK is always required and must be listed first -->
+	<script src="https://www.gstatic.com/firebasejs/8.2.9/firebase-app.js"></script>
+
+	<!-- Add Firebase products that you want to use -->
+	<script src="https://www.gstatic.com/firebasejs/8.2.9/firebase-auth.js"></script>
+	<script src="https://www.gstatic.com/firebasejs/8.2.9/firebase-analytics.js"></script>
+
+	<script src="https://www.gstatic.com/firebasejs/ui/4.7.3/firebase-ui-auth.js"></script>
+	<link type="text/css" rel="stylesheet" href="https://www.gstatic.com/firebasejs/ui/4.7.3/firebase-ui-auth.css" />
+
+	<title>Main Test</title>
+	<meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+	<meta charset="utf-8">
+</head>
+
+<body>
+	<h1>
+		<center>Please login</center>
+	</h1>
+	<div id="firebaseui-auth-container"></div>
+</body>
+
+<script>
+	// Your web app's Firebase configuration
+	// For Firebase JS SDK v7.20.0 and later, measurementId is optional
+	var firebaseConfig = {
+		apiKey: "AIzaSyBL9_7LFn07ZQ4PQZgsR65p2x3Y8WG_WUo",
+		authDomain: "carlos-lallana.firebaseapp.com",
+		databaseURL: "https://carlos-lallana.firebaseio.com",
+		projectId: "carlos-lallana",
+		storageBucket: "carlos-lallana.appspot.com",
+		messagingSenderId: "97315585963",
+		appId: "1:97315585963:web:2357d7867fec74a951dcee",
+		measurementId: "G-H2E2TBB1WZ"
+	};
+	// Initialize Firebase
+	firebase.initializeApp(firebaseConfig);
+	firebase.analytics();
+</script>
+
+<script type="text/javascript">
+	// FirebaseUI config.
+	var uiConfig = {
+		//signInSuccessUrl: '/',
+		signInOptions: [
+			// Leave the lines as is for the providers you want to offer your users.
+			firebase.auth.GoogleAuthProvider.PROVIDER_ID,
+			firebase.auth.EmailAuthProvider.PROVIDER_ID
+		],
+		// tosUrl and privacyPolicyUrl accept either url string or a callback
+		// function.
+		// Terms of service url/callback.
+		tosUrl: '<your-tos-url>',
+		// Privacy policy url/callback.
+		privacyPolicyUrl: function () {
+			window.location.assign('<your-privacy-policy-url>');
+		},
+
+		callbacks: {
+			signInSuccessWithAuthResult: (authResult, redirectUrl) => {
+				console.log(authResult);
+
+				authResult.user.getIdTokenResult().then(tokenResult => {
+					console.log(tokenResult);
+					fetch('/login', {
+						method: 'POST',
+						headers: { 'Content-Type': 'application/json' },
+						body: JSON.stringify({
+							'idToken': tokenResult.token,
+							'refreshToken': authResult.user.refreshToken
+						})
+					})
+						.then(response => {
+							if (response.ok) {
+								alert('todo bien')
+							} else {
+								alert('algo falla')
+							}
+						})
+					//.then(data => console.log(data));
+					//window.location.href = '/sessionLogin?idToken=' + idToken;
+				})
+			}
+		}
+	};
+
+	// Initialize the FirebaseUI Widget using Firebase.
+	var ui = new firebaseui.auth.AuthUI(firebase.auth());
+	// The start method will wait until the DOM is loaded.
+	ui.start('#firebaseui-auth-container', uiConfig);
+</script>
+
+</html>

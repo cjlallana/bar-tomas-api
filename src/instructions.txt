@@ -1,0 +1,37 @@
+* REQUIREMENTS *
+
+- Python 2.7 installed (for gcloud)
+- gcloud SDK installed
+- Python 3.x installed (for development)
+- Flask installed (for the development server)
+
+
+* INSTRUCTIONS *
+
+1. All required third-party libraries must be included in "requirements.txt". 
+(As I use App Engine, the commons are 'jinja2' and 'flask', and also, if using
+any Google API, 'google-auth').
+Afterwards, we run this command (either within a virtuaenv or not):
+
+pip install -r requirements.txt
+
+* Note that 'pip' must be the Python 3.x version, so maybe its 'pip3'
+
+That will install the libraries on your local computer, and automatically in
+the App Engine production environment when the app is deployed.
+
+2. To run the app locally (as in a dev server), we need to execute this in CMD:
+
+set FLASK_APP=main.py
+flask run
+
+* if you don't set the FLASK_APP flag, flaks will look for app.py
+* if you want to select a specific host and/or port, you can run: 
+flask run --host:0.0.0.0 --port 8080
+
+3. To deploy the app to App Engine, we have to navigate to the 'src' folder and 
+execute the following:
+
+gcloud init
+(login, select the project, etc... (no need to setup Compute Engine))
+gcloud app deploy
