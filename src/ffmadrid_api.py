@@ -3,10 +3,32 @@ import requests
 
 from bs4 import BeautifulSoup
 
-def _get_table():
+BASE_URL = 'http://aranjuez.ffmadrid.es/nfg/'
+
+def _save_to_datastore():
+    from google.cloud import datastore
+    # Create, populate and persist an entity with keyID=1234
+    client = datastore.Client()
+
+    key = client.key('EntityKind', 1234)
+    entity = datastore.Entity(key=key)
+    entity.update({
+        'foo': u'bar',
+        'baz': 1337,
+        'qux': False,
+    })
+    client.put(entity)
+    # Then get by key for this entity
+    result = client.get(key)
+    print(result)
+
+def _get_session():
+    """
+    Common requests regarding login and related cookies/session
+    """
 
     headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0',
+        'User-Agent': 'My User Agent 1.0',
         'Accept': '*/*',
         'Accept-Language': 'es-ES,es;q=0.8,en-US;q=0.5,en;q=0.3',
         'Method': 'POST /nfg/NLogin HTTP/1.1',
@@ -15,8 +37,6 @@ def _get_table():
         'Connection': 'keep-alive',
         'Referer': 'http://aranjuez.ffmadrid.es/nfg/',
     }
-
-    BASE_URL = 'http://aranjuez.ffmadrid.es/nfg/'
 
     s = requests.Session()
 
@@ -27,7 +47,15 @@ def _get_table():
                 'N_Ajax': 1}
 
     # Login request
-    s.post(BASE_URL + 'NLogin', data=form_data, headers=headers)
+    #s.post(BASE_URL + 'NLogin', data=form_data, headers=headers)
+    s.post(BASE_URL + 'NLogin', data=form_data)
+
+    return s
+
+
+def _get_table():
+
+    s = _get_session()
 
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0',
@@ -90,29 +118,7 @@ def _get_matches():
     añadir &Sch_Partidos_Jugados=2
     '''
 
-    headers = {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0',
-        'Accept': '*/*',
-        'Accept-Language': 'es-ES,es;q=0.8,en-US;q=0.5,en;q=0.3',
-        'Method': 'POST /nfg/NLogin HTTP/1.1',
-        'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
-        'Origin': 'http://aranjuez.ffmadrid.es',
-        'Connection': 'keep-alive',
-        'Referer': 'http://aranjuez.ffmadrid.es/nfg/',
-    }
-
-    BASE_URL = 'http://aranjuez.ffmadrid.es/nfg/'
-
-    s = requests.Session()
-
-    # Prepare the login request
-    form_data = {'NUser': 'B7529',
-                'NPass': 'Miguel11',
-                'LoginAjax': 1,
-                'N_Ajax': 1}
-
-    # Login request
-    s.post(BASE_URL + 'NLogin', data=form_data, headers=headers)
+    s = _get_session()
 
     headers = {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0',
@@ -127,14 +133,15 @@ def _get_matches():
     payload = {
         'cod_primaria': '1000139',
         'Consulta': '1',
-        'Sch_Cod_Temporada': '17',
+        'Sch_Cod_Temporada': '18',
         'Sch_Clave_Acceso_Club': '1022',
         'Club': '1022',
-        'NPcd_PageLines': '20'
+        'NPcd_PageLines': '40'
     }
 
     # Classification table request
-    r = s.get(BASE_URL + 'NPcd/NFG_LstPartidos', params=payload, headers=headers)
+    #r = s.get(BASE_URL + 'NPcd/NFG_LstPartidos', params=payload, headers=headers)
+    r = s.get(BASE_URL + 'NPcd/NFG_LstPartidos', params=payload)
 
     # Starting the parsing process
     soup = BeautifulSoup(r.text, 'html.parser')

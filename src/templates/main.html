@@ -1,29 +1,171 @@
 <!DOCTYPE html>
-
 <html>
+<title>Bar Tomás C.F.</title>
+<meta name="description" content="App oficial de Bar Tomás C.F.">
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no">
+<meta charset="utf-8">
 
-<head>
-	<title>Main Test</title>
-	<meta name="viewport" content="initial-scale=1.0, user-scalable=no">
-	<meta charset="utf-8">
+<!-- jQuery CDN -->
+<script src="https://code.jquery.com/jquery-3.3.1.min.js"></script>
+
+<!-- Materialize -->
+<!-- Compiled and minified CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+
+<!-- Compiled and minified JavaScript -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+<link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto">
+
+<script src="statics/js/main.js"></script>
+<link rel="stylesheet" href="statics/styles/main.css">
 </head>
 
 <body>
-	<p>Logged as {{user_email}} <small>(<a href="/logout">Logout</a>)</small></p>
 
-	<form action="/" method="POST">
+	<div class="container m9">
+		<nav>
+			<div class="nav-wrapper">
+				<img class="right img-auto" src="statics/img/Escudo-Bar_Tomas_2018.jpg">
+				<div class="flow-text">Bar Tomás <small>App Oficial</small></div>
+			</div>
+		</nav>
+		
+		<div class="row">
+			<div class="col s12">
+				<ul class="tabs">
+					<li class="tab col s4"><a class="active" href="#t-clasificacion">Tabla</a></li>
+					<li class="tab col s4"><a href="#t-players">Jugadores</a></li>
+				</ul>
+		
+			</div>
+			
+			<div id="t-clasificacion">
+				<table>
+					<thead>
+						<tr>
+							<th>#</th>
+							<th>Equipo</th>
+							<th>Puntos</th>
+							<th>P.J.</th>
+							<th>P.G.</th>
+							<th>P.E.</th>
+							<th>P.P.</th>
+							<th>G.F.</th>
+							<th>G.C</th>
+						</tr>
+					</thead>
+					<tbody>
+					{% if table %}
+						{% for t in table %}
+							<tr>
+								<th>{{t.position}}</th>
+								<td>{{t.name[:32]|title}}</td>
+								<td>{{t.points}}</td>
+								<td>{{t.m_played}}</td>
+								<td>{{t.m_won}}</td>
+								<td>{{t.m_drawn}}</td>
+								<td>{{t.m_lost}}</td>
+								<td>{{t.g_f}}</td>
+								<td>{{t.g_a}}</td>
+							</tr>
+					    {% endfor %}
+					{% endif %}
+					</tbody>
+				</table>
+			</div>
+	
+			<div id="t-players" class="col s12">
+				<ul class="collection">
+				{% for p in players | sort(attribute='number') if p.active %}
+					<li class="collection-item avatar">
+						{% if p.photo_url %} 
+						<img src="{{p.photo_url}}" alt="" class="circle">
+						{% else %}
+						<i class="material-icons circle">face</i>
+						{% endif %}
+						<span class="title">
+							#{{p.number}} <b>{{p.nickname}}</b><br>
+							<small>
+								Partidos jugados: {{p.n_matches}}<br>
+								Media de puntos: {{p.n_avg_points|round(2, 'common')}}
+							</small>
+						</span>
 
-		<p>Introduce el texto a traducir:</p>
-		<textarea rows="15" cols="150" name="original_text">{{original_text}}</textarea>
-
-		<br>
-		<input type="submit" value="Traducir" />
-	</form>
-
-	<p>Texto traducido:</p>
-
-	<textarea rows="15" cols="150">{{translated_text}}</textarea>
-
+						<a href="#modal{{p.key.id()}}" class="secondary-content modal-trigger"><i class="material-icons">add</i></a>
+					</li>
+				
+					<!-- Modal Structure -->
+					<div id="modal{{p.key.id()}}" class="modal">
+						<div class="modal-content">
+							<div class="container">
+								<div class="row valign-wrapper">
+									<div class="col s6">
+										{% if p.photo_url %} 
+										<img class="responsive-img" src="{{p.photo_url}}">
+										{% else %}
+										<i class="material-icons">face</i>
+										{% endif %}
+									</div>
+	
+									<div class="col s6">
+										<b>{{p.nickname}}<br>
+										#{{p.number}}</b>
+									</div>
+								</div>
+								<table>
+									<tbody>
+										<tr>
+										<td>Nombre:</td>
+										<td>{{p.name}}</td>
+										</tr>
+										<tr>
+										<td>P. Jugados:</td>
+										<td>{{p.n_matches}}</td>
+										</tr>
+										<tr>
+										<td>Total puntos:</td>
+										<td>{{p.n_points|round(2, 'common')}}</td>
+										</tr>
+										<tr>
+										<td>Media puntos:</td>
+										<td>{{p.n_avg_points|round(2, 'common')}}</td>
+										</tr>
+										<tr>
+										<td>Goles:</td>
+										<td>{{p.n_goals}}</td>
+										</tr>
+										<tr>
+										<td>Asistencias:</td>
+										<td>{{p.n_assists}}</td>
+										</tr>
+										<tr>
+										<td>T. Amarillas:</td>
+										<td>{{p.n_ycards}}</td>
+										</tr>
+										<tr>
+										<td>T. Rojas:</td>
+										<td>{{p.n_rcards}}</td>
+										</tr>
+									</tbody>
+								</table>
+							</div>
+							
+						</div>
+						<div class="modal-footer">
+							<a href="javascript:;" class="modal-close waves-effect waves-green btn-flat">Cerrar</a>
+						</div>
+					</div>
+				
+				{% else %}
+					<div>
+						<h5 class="center-align">No hay jugadores registrados</h5>
+					</div>
+				{% endfor %}
+				</ul>
+			</div>
+		</div>
+	</div>
 </body>
-
 </html>

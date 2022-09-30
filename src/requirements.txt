@@ -5,3 +5,4 @@ requests
 firebase-admin
 python-dotenv
 beautifulsoup4
+google-cloud-datastore

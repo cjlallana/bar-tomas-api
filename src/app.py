@@ -25,7 +25,7 @@ TEMP_LOGIN = 'login.html'
 def login():
 
     if request.method == 'GET':
-        template_data = {'redirect_url': '/'}
+        template_data = {'redirect_url': session.get('last_url_in_request', '/')}
         return render_template(TEMP_LOGIN, **template_data)
 
     if request.method == 'POST':
@@ -35,9 +35,7 @@ def login():
         session['refresh_token'] = body.get('refreshToken')
         
         redirect_url = (
-            body.get('redirect_url') 
-            if body.get('redirect_url')
-            else '/')
+            body.get('redirect_url') if body.get('redirect_url') else '/')
 
         return redirect(redirect_url, code=302)
 
@@ -60,6 +58,8 @@ def test2():
 @app.route('/')
 @auth_required
 def get(user):
+    user_email = user.get('email')
+    return {'msg': f'Correctly logged in as {user_email}'}
 
     print('Entering get()')
 
@@ -84,7 +84,7 @@ def get_table():
 
     return {'table': standings}, 200
 
-@app.route('/get_matches')
+@app.route('/api/get_matches')
 def get_matches():
 
     matches = _get_matches()
@@ -97,3 +97,20 @@ def get_matches2():
     matches = _get_matches2()
 
     return {'matches': matches}, 200
+
+@app.route('/test_ndb')
+def test_ndb():
+    from google.cloud import ndb
+    from .models import Player
+
+    client = ndb.Client(project='bar-tomas-api')
+    print(client)
+
+    with client.context():
+        player = Player(
+            name="John Smith",
+            phone="555 617 8993",
+            email="john.smith@gmail.com")
+        player.put()
+
+    return {'msg': 'Test OK'}, 200

@@ -43,7 +43,9 @@ def auth_required(func):
         logger.info(f'Verified user/token: {user}')
 
         if not user:
-            return {'msg': 'No user'}, 403
+            #return {'msg': 'No user'}, 403
+            session['last_url_in_request'] = request.url
+            return redirect("/login", code=302)
 
         if 'user' in inspect.signature(func).parameters:
             kwargs['user'] = user

@@ -10,14 +10,15 @@
             "request": "launch",
             "module": "flask",
             "env": {
-                "FLASK_APP": "src/main.py",
+                //"FLASK_APP": "src/main.py",
                 "FLASK_ENV": "development"
             },
             "args": [
                 "run",
                 "--no-debugger"
             ],
-            "jinja": true
+            "jinja": true,
+            "cwd": "${workspaceFolder}/src"
         }
     ]
 }
