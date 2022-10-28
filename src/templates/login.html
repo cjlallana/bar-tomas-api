@@ -44,6 +44,13 @@
 </script>
 
 <script type="text/javascript">
+	firebase.auth().onAuthStateChanged(function(user) {
+		if (user)
+			window.location.replace('{{redirect_url}}')
+	});
+		
+
+	console.log('Current user: ' + firebase.auth().currentUser)
 	// FirebaseUI config.
 	var uiConfig = {
 		//signInSuccessUrl: '/',
@@ -64,6 +71,7 @@
 		callbacks: {
 			signInSuccessWithAuthResult: (authResult, redirectUrl) => {
 				console.log(authResult);
+				console.log(redirectUrl)
 
 				authResult.user.getIdTokenResult().then(tokenResult => {
 					console.log(tokenResult);
@@ -75,19 +83,19 @@
 							'refreshToken': authResult.user.refreshToken
 						})
 					})
-						.then(response => {
-							if (response.ok) {
-								alert('todo bien')
-							} else {
-								alert('algo falla')
-							}
-						})
+					.then(response => {
+						console.log(response)
+						if (response.ok) {
+							window.location.replace('{{redirect_url}}')
+						} else {
+							alert('algo falla')
+						}
+					})
 					//.then(data => console.log(data));
 					//window.location.href = '/sessionLogin?idToken=' + idToken;
 				})
 			}
-		},
-		signInSuccessUrl: '{{redirect_url}}',
+		}
 	};
 
 	// Initialize the FirebaseUI Widget using Firebase.

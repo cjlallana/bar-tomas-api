@@ -37,6 +37,7 @@
 </script>
 
 <script type="text/javascript">
+	alert('Redirect URI: {{redirect_url}}')
 	// FirebaseUI config.
 	var uiConfig = {
 		//signInSuccessUrl: '/',
@@ -53,6 +54,7 @@
 
 				authResult.user.getIdTokenResult().then(tokenResult => {
 					console.log(tokenResult);
+					alert('pause for tokenResult')
 					fetch('/login', {
 						method: 'POST',
 						headers: { 'Content-Type': 'application/json' },

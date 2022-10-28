@@ -1,4 +1,6 @@
-import re
+from datetime import datetime
+from urllib.parse import parse_qs
+
 import requests
 
 from bs4 import BeautifulSoup
@@ -52,8 +54,7 @@ def _get_session():
 
     return s
 
-
-def _get_table():
+def _get_table_primera():
 
     s = _get_session()
 
@@ -69,8 +70,72 @@ def _get_table():
     # Prepare the params for the classification table request
     payload = { 'cod_primaria': '1000128',
                 'codjornada': '99',
-                'codcompeticion': '1003331',
-                'codgrupo': '1003333'}
+                'codcompeticion': '1004152',
+                'codgrupo': '1004160'}
+
+    # Classification table request
+    r = s.get(BASE_URL + 'NPcd/NFG_VisClasificacion', params=payload, headers=headers)
+
+    standings = []
+
+    # Starting the parsing process
+    soup = BeautifulSoup(r.text, 'html.parser')
+
+    # To retrieve the current jornada, we need to parse the URL for "Ver Calendario"
+    str_href = soup.find_all("a", string="Ver Calendario")[0]['href']
+    current_jornada = int(parse_qs(str_href).get('CodJornada')[0])
+
+    # The word 'Sancion' appears in two tables, and we want the second one,
+    # which is the "Tabla resumida"
+    table = soup.find_all("span", string="Sanción")[1].findParents('table')[0]
+
+    # Now, we get the <tr>s related to each team
+    tr_teams = table.find_all("tr", {"bgcolor" : "#FFFFFF"})
+
+    # For each <tr>, we need to extract the parameters
+    for tr in tr_teams:
+
+        # Create a dict for the team
+        team = {}
+
+        # Each <td> is a parameter
+        td_params = tr.find_all('td')
+
+        team.update({'position': td_params[1].get_text().strip()})
+        team.update({'name': td_params[2].get_text().strip().title()})
+        team.update({'points': td_params[3].get_text().strip()})
+        team.update({'m_played': td_params[4].get_text().strip()})
+        team.update({'m_won': td_params[5].get_text().strip()})
+        team.update({'m_drawn': td_params[6].get_text().strip()})
+        team.update({'m_lost': td_params[7].get_text().strip()})
+        team.update({'goals_scored': td_params[8].get_text().strip()})
+        team.update({'goals_conceded': td_params[9].get_text().strip()})
+        team.update({'last_games': td_params[10].get_text().split()})
+        team.update({'sanction_points': td_params[11].get_text().strip()})
+
+        standings.append(team)
+    
+    return standings, current_jornada
+
+
+def _get_table_segunda():
+
+    s = _get_session()
+
+    headers = {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:72.0) Gecko/20100101 Firefox/72.0',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+        'Accept-Language': 'es-ES,es;q=0.8,en-US;q=0.5,en;q=0.3',
+        'Connection': 'keep-alive',
+        'Referer': 'http://aranjuez.ffmadrid.es/nfg/NPcd/NFG_CmpJornada?cod_primaria=1000128',
+        'Upgrade-Insecure-Requests': '1',
+    }
+
+    # Prepare the params for the classification table request
+    payload = { 'cod_primaria': '1000128',
+                'codjornada': '99',
+                'codcompeticion': '1004152',
+                'codgrupo': '1004160'}
 
     # Classification table request
     r = s.get(BASE_URL + 'NPcd/NFG_VisClasificacion', params=payload, headers=headers)
@@ -102,8 +167,8 @@ def _get_table():
         team.update({'m_won': td_params[5].get_text().strip()})
         team.update({'m_drawn': td_params[6].get_text().strip()})
         team.update({'m_lost': td_params[7].get_text().strip()})
-        team.update({'g_f': td_params[8].get_text().strip()})
-        team.update({'g_a': td_params[9].get_text().strip()})
+        team.update({'goals_scored': td_params[8].get_text().strip()})
+        team.update({'goals_conceded': td_params[9].get_text().strip()})
         team.update({'last_games': td_params[10].get_text().split()})
         team.update({'sanction_points': td_params[11].get_text().strip()})
 
@@ -156,12 +221,20 @@ def _get_matches():
     matches_info = []
 
     for s in spans:
+        onclick = s['onclick']
+        onclick_params = onclick[onclick.find('(')+1:onclick.find(')')].split(',')
+        team_home_code = onclick_params[0]
+        team_away_code = onclick_params[2]
+
         td_teams = s.parent
-        teams_names = " ".join(td_teams.text.split())
+        team_home_name, team_away_name = [x.strip().title() for x in td_teams.text.split('\xa0 - \xa0')]
 
         #td_date = td_teams.find_previous('td', {'style' : 'border:0px;    background-color: white;'})
         td_date = td_teams.parent.find_previous('tr').find_previous('tr').find_previous('tr')
-        date = " ".join(td_date.text.split())
+        full_str_date = " ".join(td_date.text.split())
+        date_str, weekday = [x.strip() for x in full_str_date.split(',')]
+        date = datetime.strptime(date_str, '%d-%m-%Y')
+        weekday = weekday.replace('(', '').replace(')', '')
 
         td_code = td_teams.find_previous('td')
         code = " ".join(td_code.text.split())
@@ -172,16 +245,28 @@ def _get_matches():
         td_time = td_field.find_next('td')
         time = " ".join(td_time.text.split())
 
-        td_day = td_time.find_next('td')
-        day = " ".join(td_day.text.split())
+        td_jornada = td_time.find_next('td')
+        jornada = " ".join(td_jornada.text.split())
+
+        td_result = td_jornada.find_next('td').find_next('td')
+        result = " ".join(td_result.text.split())
+        team_home_goals = td_result.text.split()[0] if result != '-' else '-'
+        team_away_goals = td_result.text.split()[2] if result != '-' else '-'
 
         matches_info.append({
-            'teams_names': teams_names,
+            'team_home_code':team_home_code,
+            'team_away_code': team_away_code,
+            'team_home_name': team_home_name,
+            'team_away_name': team_away_name,
             'code': code,
             'field': field,
             'date': date,
             'time': time,
-            'day': day
+            'weekday': weekday,
+            'jornada': jornada,
+            'result': result,
+            'team_home_goals': team_home_goals,
+            'team_away_goals': team_away_goals
         })
 
     return matches_info

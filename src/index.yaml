@@ -1,0 +1,16 @@
+indexes:
+- kind: Table
+  ancestor: yes
+  properties:
+  - name: jornada
+    direction: desc
+
+- kind: Match
+  ancestor: yes
+  properties:
+  - name: date
+
+- kind: Match
+  ancestor: yes
+  properties:
+  - name: code
