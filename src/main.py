@@ -12,11 +12,11 @@ logger = app.logger
 
 from google.cloud import ndb
 
-from .firebase_decorators_rest import auth_required
+from firebase_decorators_rest import auth_required
 
-from .ffmadrid_api import _get_table_primera, _get_matches, _get_matches2
+from ffmadrid_api import _get_table_primera, _get_matches, _get_matches2
 
-from .models import Season, Table, Match, Player, Kid
+from models import Season, Table, Match, Player, Kid
 
 TEMP_MAIN = 'main3.html'
 TEMP_LOGIN = 'login.html'
