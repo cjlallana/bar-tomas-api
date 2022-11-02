@@ -1,0 +1,8 @@
+cron:
+- description: "Table check"
+  url: /internal/check_table
+  schedule: every 3 hours
+
+- description: "Matches check"
+  url: /internal/check_matches
+  schedule: every 3 hours
