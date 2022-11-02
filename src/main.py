@@ -116,16 +116,6 @@ def get_table():
 
     return render_template(TEMP_MAIN, **template_data)
 
-@app.route('/get_matches')
-def get_matches():
-
-    template_data = {}
-
-    matches, _ = api_get_matches()
-    template_data.update(matches)
-
-    return render_template(TEMP_MAIN, **template_data)
-
 # [END Flask rendered endpoints]
 
 # [START Internal endpoints]
@@ -204,17 +194,19 @@ def check_matches():
                     time=m['time'],
                     weekday=m['weekday']
                 )
+                
+                logger.info(f'Creating match {m["code"]}')
 
-                if m['team_home_goals'] != '-':
-                    match.status = Match.Status.PLAYED
-                    match.team_home_goals = int(m['team_home_goals'])
-                    match.team_away_goals = int(m['team_away_goals'])
+            if m['team_home_goals'] != '-' and match.status == Match.Status.PENDING:
+                logger.info(f'Updating match {m["code"]}')
+                match.status = Match.Status.PLAYED
+                match.team_home_goals = int(m['team_home_goals'])
+                match.team_away_goals = int(m['team_away_goals'])
 
-                else:
-                    match.status = Match.Status.PENDING
+            else:
+                match.status = Match.Status.PENDING
 
-                match.put()
-                logger.info(f'Match {m["code"]} created')
+            match.put()
 
     return {'msg': 'Matches correctly checked and updated'}, 200
 
