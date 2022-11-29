@@ -106,11 +106,11 @@
               <tbody>
                 <tr>
                   <td>{{m.team_home_name|title}}</td>
-                  <td><span class="text-primary">{{m.team_home_goals|default('-', true)}}</span></td>
+                  <td><span class="text-primary">{{m.team_home_goals if m.team_home_goals is not none else '-'}}</span></td>
                 </tr>
                 <tr>
                   <td>{{m.team_away_name|title}}</td>
-                  <td><span class="text-primary">{{m.team_away_goals|default('-', true)}}</span></td>
+                  <td><span class="text-primary">{{m.team_away_goals if m.team_away_goals is not none else '-'}}</span></td>
                 </tr>
               </tbody>
             </table>
