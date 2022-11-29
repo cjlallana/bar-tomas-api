@@ -192,19 +192,28 @@ def check_matches():
                     field=m['field'],
                     date=m['date'],
                     time=m['time'],
-                    weekday=m['weekday']
+                    weekday=m['weekday'],
+                    status=Match.Status.PENDING
                 )
                 
                 logger.info(f'Creating match {m["code"]}')
 
+            # If field and date are still empty, but there's already data in
+            # FFM, update it in the Match object
+            if m['field'] and not match.field:
+                logger.info(f'Updating field and date for match {m["code"]}')
+                match.field = m['field']
+                match.date = m['date']
+                match.time = m['time']
+                match.weekday = m['weekday']
+
+            # If the status was pending, but there's already a score in FFM,
+            # update it in the Match object
             if m['team_home_goals'] != '-' and match.status == Match.Status.PENDING:
-                logger.info(f'Updating match {m["code"]}')
+                logger.info(f'Updating score and status for match {m["code"]}')
                 match.status = Match.Status.PLAYED
                 match.team_home_goals = int(m['team_home_goals'])
                 match.team_away_goals = int(m['team_away_goals'])
-
-            else:
-                match.status = Match.Status.PENDING
 
             match.put()
 
